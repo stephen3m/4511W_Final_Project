@@ -31,9 +31,11 @@ def astar(graph, start, goal):
 
 def heuristic(node, goal):
     # Define your heuristic function (e.g., Euclidean distance)
+    pass
 
 def distance(graph, node1, node2):
     # Define your distance function (e.g., edge weight or cost)
+    pass
 
 def reconstruct_path(came_from, current):
     path = [current]
