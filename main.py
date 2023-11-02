@@ -43,13 +43,31 @@ def parse_file_data():
 
 #     return None
 
-def heuristic(node, goal):
-    # Define your heuristic function (e.g., Euclidean distance)
-    pass
 
-def distance(graph, node1, node2):
-    # Define your distance function (e.g., edge weight or cost)
-    pass
+######### Heuristics
+#### Admissible
+def manhattan_distance(node, goal):
+    x1, y1 = node[0], node[1]
+    x2, y2 = goal[0], node[1]
+
+    return (x1-x2)+(y1-y2)
+
+def euclidean_distance(node, goal):
+    x1, y1 = node[0], node[1]
+    x2, y2 = goal[0], node[1]
+
+    return ((x1-x2)**2+(y1-y2)**2)**0.5
+
+#### Inadmissible
+def diagonal_distance(node, goal):
+    x1, y1 = node[0], node[1]
+    x2, y2 = goal[0], node[1]
+
+    return max(abs(x1-x2), abs(y1-y2))
+
+def weighted_manhattan(node, goal):
+    return 1.2 * manhattan_distance(node, goal)
+
 
 def reconstruct_path(came_from, current):
     path = [current]
@@ -90,7 +108,7 @@ def reconstruct_path(came_from, current):
 #     nx.draw_networkx_edges(graph, pos, edgelist=path_edges, edge_color='r', width=2)
 # plt.show()
 def main():
-    parse_file_data()
+    print(parse_file_data())
     return 0
 
 main()
