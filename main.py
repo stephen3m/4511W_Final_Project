@@ -1,4 +1,4 @@
-import networkx as nx
+# import networkx as nx
 import matplotlib.pyplot as plt
 
 # Parse node data from a text file (e.g., coordinates and connections)
@@ -8,41 +8,71 @@ def parse_file_data():
 
     num_datapoints = int(fp.readline())
     # Data will be stored inside a dictionary: [key: the city number, value: coordinates tuple]
-    coordinates = {}
+    coordinates = []
     for i in range(num_datapoints):
         num, x, y = fp.readline().split(" ")
-        coordinates[int(num)] = (float(x),float(y))
+        coordinates.append([float(x),float(y)])
 
     return coordinates
 
+def center_data(coordinates):
+    x_sum = 0
+    y_sum = 0
+
+    for x, y in coordinates:
+        x_sum += x
+        y_sum += y
+    
+    x_mean = x_sum/len(coordinates)
+    y_mean = y_sum/len(coordinates)
+    centered_coordinates = []
+    for i in range(len(coordinates)):
+        new_x = coordinates[i][0] - x_mean
+        new_y = coordinates[i][1] - y_mean
+        centered_coordinates.append([new_x, new_y])
+
+    return centered_coordinates
 
 # Create a graph and add nodes and edges
 
-# Implement the A* algorithm
+# Implement the searching algorithms
+
+# Astar:
 # def astar(graph, start, goal):
-#     open_set = PriorityQueue()
-#     open_set.put((0, start))
-#     came_from = {}
-#     g_score = {node: float('inf') for node in graph.nodes()}
-#     g_score[start] = 0
-#     f_score = {node: float('inf') for node in graph.nodes()}
-#     f_score[start] = heuristic(start, goal)
+    open_set = PriorityQueue()
+    open_set.put((0, start))
+    came_from = {}
+    g_score = {node: float('inf') for node in graph.nodes()}
+    g_score[start] = 0
+    f_score = {node: float('inf') for node in graph.nodes()}
+    f_score[start] = heuristic(start, goal)
 
-#     while not open_set.empty():
-#         _, current = open_set.get()
-#         if current == goal:
-#             return reconstruct_path(came_from, current)
+    while not open_set.empty():
+        _, current = open_set.get()
+        if current == goal:
+            return reconstruct_path(came_from, current)
 
-#         for neighbor in graph.neighbors(current):
-#             tentative_g_score = g_score[current] + distance(graph, current, neighbor)
-#             if tentative_g_score < g_score[neighbor]:
-#                 came_from[neighbor] = current
-#                 g_score[neighbor] = tentative_g_score
-#                 f_score[neighbor] = g_score[neighbor] + heuristic(neighbor, goal)
-#                 open_set.put((f_score[neighbor], neighbor))
+        for neighbor in graph.neighbors(current):
+            tentative_g_score = g_score[current] + distance(graph, current, neighbor)
+            if tentative_g_score < g_score[neighbor]:
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative_g_score
+                f_score[neighbor] = g_score[neighbor] + heuristic(neighbor, goal)
+                open_set.put((f_score[neighbor], neighbor))
 
-#     return None
+    return None
 
+
+# Greedy Best First Search:
+
+
+# Djikstra's Algorithm:
+
+
+# Breadth-First-Search
+
+
+# Depth-First-Search
 
 ######### Heuristics
 #### Admissible
@@ -109,6 +139,8 @@ def reconstruct_path(came_from, current):
 # plt.show()
 def main():
     print(parse_file_data())
+    print("______________________________________________________________________")
+    print(center_data(parse_file_data()))
     return 0
 
 main()
