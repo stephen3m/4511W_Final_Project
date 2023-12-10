@@ -1,0 +1,30 @@
+# Create a Matplotlib figure and axis
+# fig, ax = plt.subplots()
+
+# Draw the graph using Matplotlib
+# pos = nx.spring_layout(graph)  # Define node positions (you can choose a layout)
+# nx.draw(graph, pos, with_labels=True, node_size=300)
+
+# Add labels to nodes (optional)
+# labels = {node: f"{node}" for node in graph.nodes()}
+# nx.draw_networkx_labels(graph, pos, labels)
+
+# Show the visualization
+# plt.show()
+
+# graph = nx.Graph()
+# # Add nodes and edges to the graph
+
+# # Call the A* algorithm
+# start_node = 'A'  # Replace with your actual start node
+# goal_node = 'B'   # Replace with your actual goal node
+# path = astar(graph, start_node, goal_node)
+
+# # Visualize the graph and path
+# pos = nx.spring_layout(graph)  # Adjust layout as needed
+# nx.draw(graph, pos, with_labels=True, node_size=300)
+# nx.draw_networkx_labels(graph, pos, labels={node: node for node in graph.nodes()})
+# if path:
+#     path_edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
+#     nx.draw_networkx_edges(graph, pos, edgelist=path_edges, edge_color='r', width=2)
+# plt.show()
