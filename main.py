@@ -1,6 +1,7 @@
 # import networkx as nx
 import matplotlib.pyplot as plt
 import networkx as nx
+from collections import deque
 import time
 import math
 import heapq
@@ -152,6 +153,27 @@ def reconstruct_path(came_from, current):
     return path
 
 # Greedy Best First Search:
+def greedy_best_first_search(graph, start, goal, heuristic):
+    open_set = []
+    heapq.heappush(open_set, (0, start))
+    came_from = {}
+    visited = set()
+
+    while open_set:
+        _, current = heapq.heappop(open_set)
+        if current == goal:
+            return reconstruct_path(came_from, current)
+
+        if current not in visited:
+            visited.add(current)
+
+            for neighbor in graph.neighbors(current):
+                if neighbor not in visited:
+                    came_from[neighbor] = current
+                    heuristic_cost = heuristic(graph, neighbor, goal)
+                    heapq.heappush(open_set, (heuristic_cost, neighbor))
+
+    return None  # Path not found if the loop ends
 
 # Djikstra's Algorithm:
 def dijkstra(graph, start, goal):
@@ -178,8 +200,38 @@ def dijkstra(graph, start, goal):
     return None, float('inf')  # Path not found
 
 # Breadth-First-Search
+def breadth_first_search(graph, start, goal):
+    queue = deque([start])
+    came_from = {start: None}
+
+    while queue:
+        current = queue.popleft()
+        if current == goal:
+            return reconstruct_path(came_from, current)
+
+        for neighbor in graph.neighbors(current):
+            if neighbor not in came_from:
+                queue.append(neighbor)
+                came_from[neighbor] = current
+
+    return None  # Path not found
 
 # Depth-First-Search
+def depth_first_search(graph, start, goal):
+    stack = [start]
+    came_from = {start: None}
+
+    while stack:
+        current = stack.pop()
+        if current == goal:
+            return reconstruct_path(came_from, current)
+
+        for neighbor in graph.neighbors(current):
+            if neighbor not in came_from:
+                stack.append(neighbor)
+                came_from[neighbor] = current
+
+    return None  # Path not found
 
 ######### Heuristics
 #### Admissible
@@ -263,15 +315,29 @@ def main():
     pos = {i: coordinates[i] for i in range(len(coordinates))}
 
     print("A* using admissible heuristics")
-    print("Time taken for A* search (manhattan_distance): ", test(astar, 5000, manhattan_distance, G))
-    print("Time taken for A* search (euclidean distance): ", test(astar, 5000, euclidean_distance, G))
-
+    print("Time taken for A* search (manhattan_distance): ", test(astar, 1000, manhattan_distance, G))
+    print("Time taken for A* search (euclidean distance): ", test(astar, 1000, euclidean_distance, G))
+    print()
     print("A* using inadmissible heursitics")
-    print("Time taken for A* search (diagonal_distance): ", test(astar, 5000, euclidean_distance, G))
-    print("Time taken for A* search (weighted_manhattan): ", test(astar, 5000, euclidean_distance, G))
-
-    print("Djikstra's")
-    print("Time taken for Djikstra's search (manhattan_distance): ", test(dijkstra, 5000, None, G))
+    print("Time taken for A* search (diagonal_distance): ", test(astar, 1000, euclidean_distance, G))
+    print("Time taken for A* search (weighted_manhattan): ", test(astar, 1000, euclidean_distance, G))
+    print()
+    print("Greedy Best-first-search using admissible heuristics")
+    print("Time taken for Greedy search (manhattan_distance): ", test(greedy_best_first_search, 1000, manhattan_distance, G))
+    print("Time taken for Greedy search (euclidean distance): ", test(greedy_best_first_search, 1000, euclidean_distance, G))
+    print()
+    print("Greedy Best-first-search using inadmissible heursitics")
+    print("Time taken for Greedy search (diagonal_distance): ", test(greedy_best_first_search, 1000, euclidean_distance, G))
+    print("Time taken for Greedy search (weighted_manhattan): ", test(greedy_best_first_search, 1000, euclidean_distance, G))
+    print()
+    print("Djikstra's (A* No Heuristics)")
+    print("Time taken for Djikstra's search (manhattan_distance): ", test(dijkstra, 1000, None, G))
+    print()
+    print("Breadth-first search")
+    print("Time taken for BFS", test(breadth_first_search, 1000, None, G))
+    print()
+    print("Depth-first search")
+    print("Time taken for DFS", test(depth_first_search, 1000, None, G))
     return 0
 
 main()
