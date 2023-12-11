@@ -1,6 +1,7 @@
 # import networkx as nx
 import matplotlib.pyplot as plt
 import networkx as nx
+import timeit
 import math
 import heapq
 
@@ -57,6 +58,12 @@ def n_nearest_neighbors(cur_city, coordinates, n):
 def create_graph(coordinates, n):
     G = nx.Graph()
     num_cities = len(coordinates)
+
+    # Add nodes with position attributes
+    for i, coord in enumerate(coordinates):
+        G.add_node(i, pos=coord)
+
+    # Add edges based on n nearest neighbors
     nearest_neighbors = {i: [] for i in range(num_cities)}
     for i in range(num_cities):
         nearest_neighbors[i] = n_nearest_neighbors(i, coordinates, n)
@@ -64,6 +71,7 @@ def create_graph(coordinates, n):
     for node, neighbors in nearest_neighbors.items():
         for dist, neighbor in neighbors:
             G.add_edge(node, neighbor, weight=math.dist(coordinates[node], coordinates[neighbor]))
+    
     return G
 
 def connect_components(G, coordinates):
@@ -102,29 +110,45 @@ def connect_isolated_nodes(G, coordinates):
 # Implement the searching algorithms
 
 # Astar:
-# def astar(graph, start, goal):
-    # open_set = PriorityQueue()
-    # open_set.put((0, start))
-    # came_from = {}
-    # g_score = {node: float('inf') for node in graph.nodes()}
-    # g_score[start] = 0
-    # f_score = {node: float('inf') for node in graph.nodes()}
-    # f_score[start] = heuristic(start, goal)
+def astar(graph, start, goal, heuristic):
+    open_set = []
+    heapq.heappush(open_set, (0, start))
+    came_from = {}
+    g_score = {node: float('inf') for node in graph.nodes()}
+    g_score[start] = 0
+    f_score = {node: float('inf') for node in graph.nodes()}
+    f_score[start] = heuristic(graph, start, goal)
 
-    # while not open_set.empty():
-    #     _, current = open_set.get()
-    #     if current == goal:
-    #         return reconstruct_path(came_from, current)
+    while open_set:
+        _, current = heapq.heappop(open_set)
+        if current == goal:
+            path = reconstruct_path(came_from, current)
+            path_cost = g_score[goal]
+            return (path, path_cost)
 
-    #     for neighbor in graph.neighbors(current):
-    #         tentative_g_score = g_score[current] + distance(graph, current, neighbor)
-    #         if tentative_g_score < g_score[neighbor]:
-    #             came_from[neighbor] = current
-    #             g_score[neighbor] = tentative_g_score
-    #             f_score[neighbor] = g_score[neighbor] + heuristic(neighbor, goal)
-    #             open_set.put((f_score[neighbor], neighbor))
+        for neighbor in graph.neighbors(current):
+            tentative_g_score = g_score[current] + graph[current][neighbor]['weight']
+            if tentative_g_score < g_score[neighbor]:
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative_g_score
+                f_score[neighbor] = g_score[neighbor] + heuristic(graph, neighbor, goal)
+                heapq.heappush(open_set, (f_score[neighbor], neighbor))
 
-    # return None
+    return None  # Path not found
+
+def reconstruct_path(came_from, current):
+    """
+    Reconstructs the path from start to goal node as determined by A* algorithm.
+    
+    :param came_from: A dictionary mapping each node to the node it came from.
+    :param current: The current node (goal node at the end of A* algorithm).
+    :return: A list representing the path from the start node to the goal node.
+    """
+    path = [current]
+    while current in came_from:
+        current = came_from[current]
+        path.insert(0, current)
+    return path
 
 # Greedy Best First Search:
 
@@ -136,35 +160,48 @@ def connect_isolated_nodes(G, coordinates):
 
 ######### Heuristics
 #### Admissible
-def manhattan_distance(node, goal):
-    x1, y1 = node[0], node[1]
-    x2, y2 = goal[0], goal[1]
+def manhattan_distance(graph, node, goal):
+    x1, y1 = graph.nodes[node]['pos']
+    x2, y2 = graph.nodes[goal]['pos']
+    return abs(x1 - x2) + abs(y1 - y2)
 
-    return (x1-x2)+(y1-y2)
-
-def euclidean_distance(node, goal):
-    x1, y1 = node[0], node[1]
-    x2, y2 = goal[0], node[1]
-
-    return ((x1-x2)**2+(y1-y2)**2)**0.5
+def euclidean_distance(graph, node, goal):
+    x1, y1 = graph.nodes[node]['pos']
+    x2, y2 = graph.nodes[goal]['pos']
+    return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
 
 #### Inadmissible
-def diagonal_distance(node, goal):
-    x1, y1 = node[0], node[1]
-    x2, y2 = goal[0], node[1]
+def diagonal_distance(graph, node, goal):
+    x1, y1 = graph.nodes[node]['pos']
+    x2, y2 = graph.nodes[goal]['pos']
+    return max(abs(x1 - x2), abs(y1 - y2))
 
-    return max(abs(x1-x2), abs(y1-y2))
-
-def weighted_manhattan(node, goal):
-    return 1.2 * manhattan_distance(node, goal)
+def weighted_manhattan(graph, node, goal):
+    return 1.2 * manhattan_distance(graph, node, goal)
 
 
-def reconstruct_path(came_from, current):
-    path = [current]
-    while current in came_from:
-        current = came_from[current]
-        path.insert(0, current)
-    return path
+def plot_path(coordinates, path):
+    # Plotting all the points
+    for coord in coordinates:
+        x = coordinates[coord][0]
+        y = coordinates[coord][1]
+        plt.scatter(x, y, c='blue')
+
+    # Plotting the path
+    for i in range(len(path) - 1):
+        point1 = coordinates[path[i]]
+        point2 = coordinates[path[i + 1]]
+        plt.plot([point1[0], point2[0]], [point1[1], point2[1]], c='red')
+
+    plt.xlabel('X Coordinate')
+    plt.ylabel('Y Coordinate')
+    plt.title('Path Found by A* Algorithm')
+    plt.show()
+
+# Assuming you have a list of coordinates and a path returned by A* algorithm
+# coordinates = [...]
+# path, _ = astar(G, start, goal, lambda node, goal: euclidean_distance(pos, node, goal))
+
 
 
 def main():
@@ -177,8 +214,16 @@ def main():
     # If you want to plot the graph
 
     pos = {i: coordinates[i] for i in range(len(coordinates))}
-    nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color='gray')
-    plt.show()
+    # nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color='gray')
+    # plt.show()
+
+    start = timeit.timeit()
+    path, cost = astar(G, 0, 20, manhattan_distance)
+    end = timeit.timeit()
+
+    plot_path(pos, path)
+    print("Time taken for A* search: ", abs(end-start))
+
     return 0
 
 main()
