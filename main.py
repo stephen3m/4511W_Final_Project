@@ -1,9 +1,10 @@
 # import networkx as nx
 import matplotlib.pyplot as plt
 import networkx as nx
-import timeit
+import time
 import math
 import heapq
+import random
 
 # Parse node data from a text file (e.g., coordinates and connections)
 def parse_file_data():
@@ -153,6 +154,28 @@ def reconstruct_path(came_from, current):
 # Greedy Best First Search:
 
 # Djikstra's Algorithm:
+def dijkstra(graph, start, goal):
+    open_set = []
+    heapq.heappush(open_set, (0, start))
+    came_from = {}
+    g_score = {node: float('inf') for node in graph.nodes()}
+    g_score[start] = 0
+
+    while open_set:
+        _, current = heapq.heappop(open_set)
+        if current == goal:
+            path = reconstruct_path(came_from, current)
+            path_cost = g_score[goal]  # Total cost of the path
+            return path, path_cost
+
+        for neighbor in graph.neighbors(current):
+            tentative_g_score = g_score[current] + graph[current][neighbor]['weight']
+            if tentative_g_score < g_score[neighbor]:
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative_g_score
+                heapq.heappush(open_set, (g_score[neighbor], neighbor))
+
+    return None, float('inf')  # Path not found
 
 # Breadth-First-Search
 
@@ -202,7 +225,32 @@ def plot_path(coordinates, path):
 # coordinates = [...]
 # path, _ = astar(G, start, goal, lambda node, goal: euclidean_distance(pos, node, goal))
 
+def test(search_algorithm, cycles, heuristic, G):
+    num_cities = len(G)
+    if heuristic:
+        time_start = time.perf_counter()
+        for i in range(cycles):
+            start = random.randint(0, num_cities-1)
+            goal = start
+            while goal == start:
+                goal = random.randint(0, num_cities-1)
 
+            search_algorithm(G, start, goal, heuristic)
+        time_end = time.perf_counter()
+        return abs(time_end-time_start)
+    
+    else:
+        time_start = time.perf_counter()
+        for i in range(cycles):
+            start = random.randint(0, num_cities-1)
+            goal = start
+            while goal == start:
+                goal = random.randint(0, num_cities-1)
+
+            search_algorithm(G, start, goal)
+        time_end = time.perf_counter()
+        return abs(time_end-time_start)
+    
 
 def main():
 
@@ -211,19 +259,19 @@ def main():
 
     connect_components(G, coordinates)
     connect_isolated_nodes(G, coordinates)
-    # If you want to plot the graph
 
     pos = {i: coordinates[i] for i in range(len(coordinates))}
-    # nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color='gray')
-    # plt.show()
 
-    start = timeit.timeit()
-    path, cost = astar(G, 0, 20, manhattan_distance)
-    end = timeit.timeit()
+    print("A* using admissible heuristics")
+    print("Time taken for A* search (manhattan_distance): ", test(astar, 5000, manhattan_distance, G))
+    print("Time taken for A* search (euclidean distance): ", test(astar, 5000, euclidean_distance, G))
 
-    plot_path(pos, path)
-    print("Time taken for A* search: ", abs(end-start))
+    print("A* using inadmissible heursitics")
+    print("Time taken for A* search (diagonal_distance): ", test(astar, 5000, euclidean_distance, G))
+    print("Time taken for A* search (weighted_manhattan): ", test(astar, 5000, euclidean_distance, G))
 
+    print("Djikstra's")
+    print("Time taken for Djikstra's search (manhattan_distance): ", test(dijkstra, 5000, None, G))
     return 0
 
 main()
