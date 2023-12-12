@@ -6,6 +6,7 @@ import time
 import math
 import heapq
 import os
+import glob
 import random
 
 from algorithms import *
@@ -155,11 +156,12 @@ def get_coordinates(G):
 
 def runAlgo(algorithm, G, start, goal, heuristic):
     algorithm_name = algorithm.__name__
+    heuristic_name = heuristic.__name__ if heuristic else 'None'
     if heuristic:
         time_start = time.perf_counter()
         path, cost = algorithm(G, start, goal, heuristic)
         time_end = time.perf_counter()
-        filename_prefix = f"{algorithm_name}"
+        filename_prefix = f"{algorithm_name}_{heuristic_name}"
         plot_path(get_coordinates(G), path, filename_prefix)
         print(start, " to ", goal)
         print("Runtime: ", 1000*abs(time_end-time_start), "ms")
@@ -169,13 +171,27 @@ def runAlgo(algorithm, G, start, goal, heuristic):
         time_start = time.perf_counter()
         path, cost = algorithm(G, start, goal)
         time_end = time.perf_counter()
-        filename_prefix = f"{algorithm_name}"
+        filename_prefix = f"{algorithm_name}_{heuristic_name}"
         plot_path(get_coordinates(G), path, filename_prefix)
         print(start, " to ", goal)
         print("Runtime: ", 1000*abs(time_end-time_start), "ms")
         print("Path: ", path)
         print("Total distance ", cost)
-    print()
+    
+    # Ensure the "analysis" folder exists
+    if not os.path.exists("analysis"):
+        os.makedirs("analysis")
+    
+    # Save information to a text file in the "analysis" folder
+    analysis_filename = f"analysis/{filename_prefix}_analysis.txt"
+    with open(analysis_filename, 'w') as analysis_file:
+        analysis_file.write(f"Algorithm: {algorithm_name}, Heuristic: {heuristic.__name__ if heuristic else 'None'}\n")
+        analysis_file.write(f"{start} to {goal}\n")
+        analysis_file.write(f"Runtime: {1000*abs(time_end-time_start)} ms\n")
+        analysis_file.write(f"Path: {path}\n")
+        analysis_file.write(f"Total distance: {cost}\n")
+
+    print(f"Analysis saved to {analysis_filename}\n")
     return
 
 def runAnalysis(G, start, goal):
@@ -214,7 +230,25 @@ def runAnalysis(G, start, goal):
     # print("DFS: ")
     # runAlgo(depth_first_search, G, start, goal, None)
 
+def clear_files():
+    analysis_folder = "analysis"
+    graph_folder = "graph"
+
+    # Remove files from the analysis folder
+    analysis_files = glob.glob(os.path.join(analysis_folder, '*'))
+    for file in analysis_files:
+        os.remove(file)
+
+    # Remove files from the graph folder
+    graph_files = glob.glob(os.path.join(graph_folder, '*'))
+    for file in graph_files:
+        os.remove(file)
+
+    print("All files removed from 'analysis' and 'graph' folders.")
+
 def main():
+    # Call the function to clear the files
+    clear_files()
 
     coordinates = parseTxt()
     G = drawGraph(coordinates, 4)  # 4 nearest neighbors
