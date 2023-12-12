@@ -132,11 +132,19 @@ def plot_path(coordinates, path):
 # Assuming you have a list of coordinates and a path returned by A* algorithm
 # coordinates = [...]
 # path, _ = astar(G, start, goal, lambda node, goal: euclidean_distance(pos, node, goal))
+def get_coordinates(G):
+    coordinates = {}
+    for node in G.nodes(data=True):
+        id, node_data = node
+        coordinates[id] = node_data['pos']
+    return coordinates
+
 def runAlgo(algorithm, G, start, goal, heuristic):
     if heuristic:
         time_start = time.perf_counter()
         path, cost = algorithm(G, start, goal, heuristic)
         time_end = time.perf_counter()
+        plot_path(get_coordinates(G), path)
         print(start, " to ", goal)
         print("Runtime: ", 1000*abs(time_end-time_start), "ms")
         print("Path: ", path)
@@ -145,6 +153,7 @@ def runAlgo(algorithm, G, start, goal, heuristic):
         time_start = time.perf_counter()
         path, cost = algorithm(G, start, goal)
         time_end = time.perf_counter()
+        plot_path(get_coordinates(G), path)
         print(start, " to ", goal)
         print("Runtime: ", 1000*abs(time_end-time_start), "ms")
         print("Path: ", path)
@@ -156,48 +165,48 @@ def runAnalysis(G, start, goal):
     print("A* with manhattan distance heuristic: ")
     runAlgo(astar, G, start, goal, manhattan_distance)
 
-    print("A* with euclidean distance heuristic: ")
-    runAlgo(astar, G, start, goal, euclidean_distance)
+    # print("A* with euclidean distance heuristic: ")
+    # runAlgo(astar, G, start, goal, euclidean_distance)
 
-    print("A* with diagonal distance heuristic: ")
-    runAlgo(astar, G, start, goal, diagonal_distance)
+    # print("A* with diagonal distance heuristic: ")
+    # runAlgo(astar, G, start, goal, diagonal_distance)
 
-    print("A* with weighted manhattan distance heuristic: ")
-    runAlgo(astar, G, start, goal, weighted_manhattan)
-
-
-    print("Greedy with manhattan distance heuristic: ")
-    runAlgo(greedy_best_first_search, G, start, goal, manhattan_distance)
-
-    print("Greedy with euclidean distance heuristic: ")
-    runAlgo(greedy_best_first_search, G, start, goal, euclidean_distance)
-
-    print("Greedy with diagonal distance heuristic: ")
-    runAlgo(greedy_best_first_search, G, start, goal, diagonal_distance)
-
-    print("Greedy with weighted manhattan distance heuristic: ")
-    runAlgo(greedy_best_first_search, G, start, goal, weighted_manhattan)
+    # print("A* with weighted manhattan distance heuristic: ")
+    # runAlgo(astar, G, start, goal, weighted_manhattan)
 
 
-    print("Djikstra's (A* no heuristic): ")
-    runAlgo(dijkstra, G, start, goal, None)
+    # print("Greedy with manhattan distance heuristic: ")
+    # runAlgo(greedy_best_first_search, G, start, goal, manhattan_distance)
 
-    print("BFS: ")
-    runAlgo(breadth_first_search, G, start, goal, None)
+    # print("Greedy with euclidean distance heuristic: ")
+    # runAlgo(greedy_best_first_search, G, start, goal, euclidean_distance)
 
-    print("DFS: ")
-    runAlgo(depth_first_search, G, start, goal, None)
+    # print("Greedy with diagonal distance heuristic: ")
+    # runAlgo(greedy_best_first_search, G, start, goal, diagonal_distance)
+
+    # print("Greedy with weighted manhattan distance heuristic: ")
+    # runAlgo(greedy_best_first_search, G, start, goal, weighted_manhattan)
+
+
+    # print("Djikstra's (A* no heuristic): ")
+    # runAlgo(dijkstra, G, start, goal, None)
+
+    # print("BFS: ")
+    # runAlgo(breadth_first_search, G, start, goal, None)
+
+    # print("DFS: ")
+    # runAlgo(depth_first_search, G, start, goal, None)
 
 def main():
 
     coordinates = parseTxt()
-    G = drawGraph(coordinates, 3)  # 3 nearest neighbors
+    G = drawGraph(coordinates, 4)  # 3 nearest neighbors
     
     connect_components(G, coordinates)
     connect_isolated_nodes(G, coordinates)
 
     num_cities = len(coordinates)
-    print("There are ", num_cities, "cities on the graph, pick a start and goal city number from 0 to", num_cities-1)
+    print("There are", num_cities, "cities on the graph, pick a start and goal city number from 0 to", num_cities-1)
 
     start = int(input("Enter the starting city: "))
     if not (0 <= start < num_cities):
