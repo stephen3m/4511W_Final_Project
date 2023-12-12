@@ -5,6 +5,7 @@ from collections import deque
 import time
 import math
 import heapq
+import os
 import random
 
 from algorithms import *
@@ -110,7 +111,8 @@ def connect_isolated_nodes(G, coordinates):
 
 # Create a graph and add nodes and edges
 
-def plot_path(coordinates, path):
+
+def plot_path(coordinates, path, filename_prefix):
     # Plotting all the points
     for coord in coordinates:
         x = coordinates[coord][0]
@@ -126,7 +128,19 @@ def plot_path(coordinates, path):
     plt.xlabel('X Coordinate')
     plt.ylabel('Y Coordinate')
     plt.title('Path Found by A* Algorithm')
+
+    # Ensure the "graph" folder exists
+    if not os.path.exists("graph"):
+        os.makedirs("graph")
+
+    # Save the plot as a .png file in the "graph" folder
+    filename = f"graph/{filename_prefix}_path.png"
+    plt.savefig(filename)
+
+    # Show the plot
     plt.show()
+
+    return filename
 
 
 # Assuming you have a list of coordinates and a path returned by A* algorithm
@@ -140,11 +154,13 @@ def get_coordinates(G):
     return coordinates
 
 def runAlgo(algorithm, G, start, goal, heuristic):
+    algorithm_name = algorithm.__name__
     if heuristic:
         time_start = time.perf_counter()
         path, cost = algorithm(G, start, goal, heuristic)
         time_end = time.perf_counter()
-        plot_path(get_coordinates(G), path)
+        filename_prefix = f"{algorithm_name}"
+        plot_path(get_coordinates(G), path, filename_prefix)
         print(start, " to ", goal)
         print("Runtime: ", 1000*abs(time_end-time_start), "ms")
         print("Path: ", path)
@@ -153,7 +169,8 @@ def runAlgo(algorithm, G, start, goal, heuristic):
         time_start = time.perf_counter()
         path, cost = algorithm(G, start, goal)
         time_end = time.perf_counter()
-        plot_path(get_coordinates(G), path)
+        filename_prefix = f"{algorithm_name}"
+        plot_path(get_coordinates(G), path, filename_prefix)
         print(start, " to ", goal)
         print("Runtime: ", 1000*abs(time_end-time_start), "ms")
         print("Path: ", path)
@@ -200,7 +217,7 @@ def runAnalysis(G, start, goal):
 def main():
 
     coordinates = parseTxt()
-    G = drawGraph(coordinates, 4)  # 3 nearest neighbors
+    G = drawGraph(coordinates, 4)  # 4 nearest neighbors
     
     connect_components(G, coordinates)
     connect_isolated_nodes(G, coordinates)
