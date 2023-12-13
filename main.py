@@ -8,6 +8,7 @@ import heapq
 import os
 import glob
 import random
+import psutil
 
 from algorithms import *
 
@@ -166,7 +167,18 @@ def runAlgo(algorithm, G, start, goal, heuristic):
         print(start, " to ", goal)
         print("Runtime: ", 1000*abs(time_end-time_start), "ms")
         print("Path: ", path)
+        print("Nodes visited: ", len(path))
         print("Total distance ", cost)
+        # Measure memory usage using psutil
+        memory_usage_bytes = psutil.Process().memory_info().rss
+        memory_usage_kb = memory_usage_bytes / 1024.0
+        memory_usage_mb = memory_usage_kb / 1024.0
+        memory_usage_gb = memory_usage_mb / 1024.0
+
+        print(f"Memory Usage: {memory_usage_bytes} bytes")
+        print(f"Memory Usage: {memory_usage_kb:.2f} KB")
+        print(f"Memory Usage: {memory_usage_mb:.2f} MB")
+        print(f"Memory Usage: {memory_usage_gb:.2f} GB")
     else:
         time_start = time.perf_counter()
         path, cost = algorithm(G, start, goal)
@@ -176,7 +188,18 @@ def runAlgo(algorithm, G, start, goal, heuristic):
         print(start, " to ", goal)
         print("Runtime: ", 1000*abs(time_end-time_start), "ms")
         print("Path: ", path)
+        print("Nodes visited: ", len(path))
         print("Total distance ", cost)
+        # Measure memory usage using psutil
+        memory_usage_bytes = psutil.Process().memory_info().rss
+        memory_usage_kb = memory_usage_bytes / 1024.0
+        memory_usage_mb = memory_usage_kb / 1024.0
+        memory_usage_gb = memory_usage_mb / 1024.0
+
+        print(f"Memory Usage: {memory_usage_bytes} bytes")
+        print(f"Memory Usage: {memory_usage_kb:.2f} KB")
+        print(f"Memory Usage: {memory_usage_mb:.2f} MB")
+        print(f"Memory Usage: {memory_usage_gb:.2f} GB")
     
     # Ensure the "analysis" folder exists
     if not os.path.exists("analysis"):
@@ -189,7 +212,17 @@ def runAlgo(algorithm, G, start, goal, heuristic):
         analysis_file.write(f"{start} to {goal}\n")
         analysis_file.write(f"Runtime: {1000*abs(time_end-time_start)} ms\n")
         analysis_file.write(f"Path: {path}\n")
+        analysis_file.write(f"Nodes visited: {len(path)}\n")
         analysis_file.write(f"Total distance: {cost}\n")
+
+        memory_usage_bytes = psutil.Process().memory_info().rss
+        memory_usage_kb = memory_usage_bytes / 1024.0
+        memory_usage_mb = memory_usage_kb / 1024.0
+        memory_usage_gb = memory_usage_mb / 1024.0
+        analysis_file.write(f"Memory Usage: {memory_usage_bytes} bytes\n")
+        analysis_file.write(f"Memory Usage: {memory_usage_kb:.2f} KB\n")
+        analysis_file.write(f"Memory Usage: {memory_usage_mb:.2f} MB\n")
+        analysis_file.write(f"Memory Usage: {memory_usage_gb:.2f} GB\n")
 
     print(f"Analysis saved to {analysis_filename}\n")
     return
