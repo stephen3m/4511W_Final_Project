@@ -9,6 +9,9 @@ import os
 import glob
 import random
 import psutil
+from tabulate import tabulate
+import pandas as pd
+from pandas.plotting import table
 
 from algorithms import *
 
@@ -228,6 +231,8 @@ def runAlgo(algorithm, G, start, goal, heuristic):
     return
 
 def runAnalysis(G, start, goal):
+    # run_algorithms_on_map("uruguay.txt", start, goal)
+
     print("A* with manhattan distance heuristic: ")
     runAlgo(astar, G, start, goal, manhattan_distance)
 
@@ -278,6 +283,73 @@ def clear_files():
         os.remove(file)
 
     print("All files removed from 'analysis' and 'graph' folders.")
+
+def run_algorithms_on_map(file_name, start, goal):
+    # Parse node data from the specified file
+    coordinates = parseTxt()
+
+    # Draw graph with 4 nearest neighbors
+    G = drawGraph(coordinates, 4)
+
+    # Connect components and isolated nodes
+    connect_components(G, coordinates)
+    connect_isolated_nodes(G, coordinates)
+
+    # Data collection table
+    data_table = []
+
+    algorithms = [
+        ("A* with Euclidean heuristic", astar, euclidean_distance),
+        ("Greedy Best First Search", greedy_best_first_search, manhattan_distance),
+        ("Dijkstra's", dijkstra, None),
+        ("BFS", breadth_first_search, None),
+        ("DFS", depth_first_search, None)
+    ]
+
+    for algorithm_name, algorithm, heuristic in algorithms:
+        time_start = time.perf_counter()
+
+        # Run the algorithm
+        if heuristic:
+            path, cost = algorithm(G, start, goal, heuristic)
+        else:
+            path, cost = algorithm(G, start, goal)
+
+        time_end = time.perf_counter()
+
+        # Measure memory usage using psutil
+        memory_usage_bytes = psutil.Process().memory_info().rss
+        memory_usage_kb = memory_usage_bytes / 1024.0
+        memory_usage_mb = memory_usage_kb / 1024.0
+
+        # Add data to the table (keeping only Memory Usage (MB))
+        data_table.append([
+            algorithm_name,
+            f"{1000*abs(time_end-time_start):.2f} ms",
+            len(path),
+            f"{cost:.2f}",
+            f"{memory_usage_mb:.2f} MB"
+        ])
+
+    # Convert the data table to a Pandas DataFrame for plotting
+    df = pd.DataFrame(data_table, columns=["Algorithm", "Runtime", "Nodes Visited", "Total Distance", "Memory Usage (MB)"])
+
+    # Plot the table with custom styling
+    fig, ax = plt.subplots(figsize=(10, 3))  # Adjust the figure size as needed
+    ax.axis('off')
+
+    # Custom styling
+    ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center', bbox=[0, 0, 1, 1])
+
+    # Save the table as a .png file
+    # Ensure the "tables" folder exists
+    tables_folder = "tables"
+    if not os.path.exists(tables_folder):
+        os.makedirs(tables_folder)
+
+    filename = f"{tables_folder}/{file_name}_table.png"
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.05, dpi=300)
+    print(f"Table saved as {filename}")
 
 def main():
     # Call the function to clear the files
