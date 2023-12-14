@@ -231,7 +231,7 @@ def runAlgo(algorithm, G, start, goal, heuristic):
     return
 
 def runAnalysis(G, start, goal):
-    # run_algorithms_on_map("uruguay.txt", start, goal)
+    # run_algorithms_on_map("oman.txt", start, goal)
 
     print("A* with manhattan distance heuristic: ")
     runAlgo(astar, G, start, goal, manhattan_distance)
@@ -284,6 +284,7 @@ def clear_files():
 
     print("All files removed from 'analysis' and 'graph' folders.")
 
+
 def run_algorithms_on_map(file_name, start, goal):
     # Parse node data from the specified file
     coordinates = parseTxt()
@@ -299,7 +300,9 @@ def run_algorithms_on_map(file_name, start, goal):
     data_table = []
 
     algorithms = [
-        ("A* with Euclidean heuristic", astar, euclidean_distance),
+        ("A* with Manhattan Distance", astar, manhattan_distance),
+        ("A* with Euclidean Distance", astar, euclidean_distance),
+        ("A* with Diagonal Distance", astar, diagonal_distance),
         ("Greedy Best First Search", greedy_best_first_search, manhattan_distance),
         ("Dijkstra's", dijkstra, None),
         ("BFS", breadth_first_search, None),
