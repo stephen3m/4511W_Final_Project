@@ -230,11 +230,100 @@ def runAlgo(algorithm, G, start, goal, heuristic):
     print(f"Analysis saved to {analysis_filename}\n")
     return
 
+def experiment_connectivity_performance(algorithms, map_file, start, goal, n_values):
+    # Parse node data from the specified file
+    coordinates = parseTxt()
+
+    # Create a graph with 4 nearest neighbors for baseline
+    G_baseline = drawGraph(coordinates, 4)
+    connect_components(G_baseline, coordinates)
+    connect_isolated_nodes(G_baseline, coordinates)
+
+    # Data collection
+    data_runtime = {algorithm_name: [] for algorithm_name, _, _ in algorithms}
+    data_distance = {algorithm_name: [] for algorithm_name, _, _ in algorithms}
+
+    for n in n_values:
+        # Create a graph with varying n for connectivity
+        G = drawGraph(coordinates, n)
+        connect_components(G, coordinates)
+        connect_isolated_nodes(G, coordinates)
+
+        for algorithm_name, algorithm, heuristic in algorithms:
+            time_start = time.perf_counter()
+
+            # Run the algorithm
+            if heuristic:
+                path, cost = algorithm(G, start, goal, heuristic)
+            else:
+                path, cost = algorithm(G, start, goal)
+
+            time_end = time.perf_counter()
+
+            # Record runtime and total distance
+            data_runtime[algorithm_name].append((n, 1000 * abs(time_end - time_start)))
+            data_distance[algorithm_name].append((n, cost))
+
+    # Convert the data to Pandas DataFrame for table creation
+    df_runtime = pd.DataFrame(data_runtime)
+    df_distance = pd.DataFrame(data_distance)
+
+    # Save the tables as .png files
+    tables_folder = "tables"
+    if not os.path.exists(tables_folder):
+        os.makedirs(tables_folder)
+
+    runtime_table_filename = f"{tables_folder}/{map_file}_runtime_table.png"
+    distance_table_filename = f"{tables_folder}/{map_file}_distance_table.png"
+
+    # Plotting the relationship between n and runtime
+    plt.figure(figsize=(12, 6))
+    for algorithm_name in df_runtime.columns:
+        plt.plot(df_runtime[algorithm_name].apply(lambda x: x[0]), df_runtime[algorithm_name].apply(lambda x: x[1]), label=algorithm_name, marker='o')
+
+    plt.xlabel('Connectivity (n)')
+    plt.ylabel('Runtime (ms)')
+    plt.title('Relationship Between Connectivity and Runtime')
+    plt.legend()
+    plt.savefig(runtime_table_filename)
+    plt.close()
+
+    # Plotting the relationship between n and total distance traveled
+    plt.figure(figsize=(12, 6))
+    for algorithm_name in df_distance.columns:
+        plt.plot(df_distance[algorithm_name].apply(lambda x: x[0]), df_distance[algorithm_name].apply(lambda x: x[1]), label=algorithm_name, marker='o')
+
+    plt.xlabel('Connectivity (n)')
+    plt.ylabel('Total Distance Traveled')
+    plt.title('Relationship Between Connectivity and Total Distance Traveled')
+    plt.legend()
+    plt.savefig(distance_table_filename)
+    plt.close()
+
+    print(f"Runtime table saved as {runtime_table_filename}")
+    print(f"Distance table saved as {distance_table_filename}")
+
 def runAnalysis(G, start, goal):
+    
+    #setup for experiment_connectivity_performance
+    algorithms_to_test = [
+    ("A* with Euclidean heuristic", astar, euclidean_distance),
+    ("A* with Manhattan heuristic", astar, manhattan_distance),
+    ("A* with Diagonal heuristic", astar, diagonal_distance),
+    ("Greedy Best First Search", greedy_best_first_search, manhattan_distance),
+    ("Dijkstra's", dijkstra, None),
+    ]
+
+    start_node = 0
+    goal_node = 1
+    n_values_to_test = [1, 2, 3, 4, 6, 6, 7, 8, 9, 10]
+
+    experiment_connectivity_performance(algorithms_to_test, "your_map_file.txt", start_node, goal_node, n_values_to_test)
+    
     # run_algorithms_on_map("oman.txt", start, goal)
 
-    print("A* with manhattan distance heuristic: ")
-    runAlgo(astar, G, start, goal, manhattan_distance)
+    # print("A* with manhattan distance heuristic: ")
+    # runAlgo(astar, G, start, goal, manhattan_distance)
 
     # print("A* with euclidean distance heuristic: ")
     # runAlgo(astar, G, start, goal, euclidean_distance)
